@@ -47,7 +47,7 @@
   pointer-events: none;
 }
 
-/* Quote Tweet Popup Styles */
+/* Quote Popup Styles */
 #x-article-quote-popup {
   position: absolute;
   z-index: 9999999;
@@ -119,4 +119,3 @@
   border-right: 1px solid rgba(255, 255, 255, 0.15);
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
-

@@ -5,6 +5,8 @@
   'use strict';
 
   let quotePopup = null;
+  let lastSelectedText = '';
+  let quoteModalObserver = null;
 
   function getArticleInfo() {
     const url = window.location.href;
@@ -82,22 +84,110 @@
     quotePopup.style.top = `${posY}px`;
     quotePopup.classList.add('visible');
 
-    // Set up the click handler for the quote tweet button
+    // Set up click handler
     const btn = quotePopup.querySelector('#x-quote-tweet-btn');
     btn.onclick = (e) => {
       e.preventDefault();
       e.stopPropagation();
       
-      // Compose the tweet text with the selected quote and article URL
-      const tweetText = `"${selectedText}"\n\n${articleInfo.url}`;
-      const encodedText = encodeURIComponent(tweetText);
+      // Store the selected text for when the modal opens
+      lastSelectedText = selectedText;
       
-      // Open X.com compose in a new tab
-      const composeUrl = `https://x.com/intent/tweet?text=${encodedText}`;
-      window.open(composeUrl, '_blank');
+      // Find and click the Repost button to open the menu
+      const repostBtn = document.querySelector('[data-testid="retweet"]');
+      if (repostBtn) {
+        repostBtn.click();
+        
+        // Wait for menu to appear, then click Quote option
+        setTimeout(() => {
+          clickQuoteOption();
+        }, 200);
+      }
       
       hidePopup();
     };
+  }
+
+  // Click the Quote option in the repost menu
+  function clickQuoteOption() {
+    // Look for the Quote menu item - it's typically in a dropdown/menu
+    const menuItems = document.querySelectorAll('[role="menuitem"]');
+    
+    for (const item of menuItems) {
+      const text = item.textContent.toLowerCase();
+      if (text.includes('quote')) {
+        item.click();
+        return;
+      }
+    }
+
+    // Alternative: look for any clickable element with "Quote" text
+    const allElements = document.querySelectorAll('div, span, a');
+    for (const el of allElements) {
+      if (el.textContent.trim() === 'Quote' && el.closest('[role="menu"]')) {
+        el.click();
+        return;
+      }
+    }
+  }
+
+  // Fill the quote compose textarea with selected text
+  function fillQuoteTextarea(textToInsert) {
+    const textarea = document.querySelector('[data-testid="tweetTextarea_0"]');
+    if (!textarea) return false;
+
+    // Format: quote text with curly quotes (user can edit and add their thoughts)
+    const quoteText = `"${textToInsert}"`;
+    
+    // Focus the textarea
+    textarea.focus();
+    
+    // Insert text using execCommand (works with Draft.js contenteditable)
+    document.execCommand('insertText', false, quoteText);
+    
+    // Dispatch events to notify React/Draft.js of changes
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    
+    // Hide the "Add a comment" placeholder
+    const placeholder = document.querySelector('.public-DraftEditorPlaceholder-root');
+    if (placeholder) {
+      placeholder.style.display = 'none';
+    }
+    
+    return true;
+  }
+
+  // Watch for the Quote compose modal to appear
+  function watchForQuoteModal() {
+    quoteModalObserver = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            // Check if a dialog/modal appeared with tweet compose
+            const dialog = node.querySelector ? node.querySelector('[role="dialog"]') : null;
+            const textarea = node.querySelector ? node.querySelector('[data-testid="tweetTextarea_0"]') : null;
+            
+            if (dialog || textarea || (node.getAttribute && node.getAttribute('role') === 'dialog')) {
+              // Small delay to let the modal fully render
+              setTimeout(() => {
+                if (lastSelectedText) {
+                  const filled = fillQuoteTextarea(lastSelectedText);
+                  if (filled) {
+                    // Clear the stored text after using it
+                    lastSelectedText = '';
+                  }
+                }
+              }, 300);
+            }
+          }
+        }
+      }
+    });
+
+    quoteModalObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
   }
 
   function handleTextSelection() {
@@ -140,6 +230,7 @@
     if (getArticleInfo()) {
       applyWidthFix();
       handleTextSelection();
+      watchForQuoteModal();
     }
   }
 
