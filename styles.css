@@ -142,3 +142,35 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
+/* Full Width Toggle Button (in header) */
+#x-fullwidth-toggle.x-header-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 9999px;
+  color: #1d9bf0;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+#x-fullwidth-toggle.x-header-btn:hover {
+  background: rgba(29, 155, 240, 0.1);
+}
+
+#x-fullwidth-toggle.x-header-btn.active {
+  color: #1d9bf0;
+}
+
+#x-fullwidth-toggle.x-header-btn:not(.active) {
+  color: #71767b;
+}
+
+#x-fullwidth-toggle.x-header-btn svg {
+  flex-shrink: 0;
+}
+

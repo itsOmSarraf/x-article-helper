@@ -5,8 +5,10 @@ A Chrome extension that enhances your X.com article reading and sharing experien
 ## Features
 
 - **Wider Layout** — Articles display in full width for better readability
-- **Quote Tweet Selection** — Select any text → Click "Quote Tweet" → Share instantly
-- **Native Integration** — Uses X's built-in compose modal, fully editable
+- **Quote Tweet Selection** — Select any text → Click "Quote" → Share instantly with the quote pre-filled
+- **Ask Grok (Selection)** — Select any text → Click "Ask Grok" → Get explanations from Grok with article context
+- **Grok Article Context** — Click the Grok button → Automatically pre-fills with article title & URL so Grok knows what you're reading
+- **Native Integration** — Uses X's built-in compose modal and Grok sidebar, fully editable
 
 ## Installation
 
@@ -59,4 +61,4 @@ MIT — Feel free to use and modify.
 
 ---
 
-Made by [@itsOmSarraf_](https://x.com/itsOmSarraf_) · [Star this repo](https://github.com/itsOmSarraf/x-article-helper)
+Made with ❤️ by [@itsOmSarraf_](https://x.com/itsOmSarraf_) · [Star this repo](https://github.com/itsOmSarraf/x-article-helper)

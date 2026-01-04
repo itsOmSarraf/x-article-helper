@@ -7,6 +7,8 @@
   let quotePopup = null;
   let lastSelectedText = '';
   let quoteModalObserver = null;
+  let isFullWidth = localStorage.getItem('x-article-fullwidth') !== 'false'; // Default: true
+  let originalClasses = {}; // Store original classes to restore
 
   function getArticleInfo() {
     const url = window.location.href;
@@ -18,26 +20,117 @@
   }
 
   function applyWidthFix() {
+    if (!isFullWidth) return;
+    
     let changed = 0;
 
-    const main = document.querySelector('main[role="main"].css-175oi2r.r-16y2uox.r-1wbh5a2.r-1habvwh');
-    if (main) { main.className = 'w-full px-10'; changed++; }
+    const main = document.querySelector('main[role="main"]');
+    if (main && !originalClasses.main) {
+      originalClasses.main = main.className;
+      main.className = 'w-full px-10';
+      changed++;
+    }
 
-    const div1 = document.querySelector('.css-175oi2r.r-150rngu.r-16y2uox.r-1wbh5a2.r-113js5t');
-    if (div1) { div1.className = 'w-full'; changed++; }
+    const selectors = [
+      '.css-175oi2r.r-150rngu.r-16y2uox.r-1wbh5a2.r-113js5t',
+      '.css-175oi2r.r-18u37iz.r-1pi2tsx.r-bqdgw5.r-13qz1uu',
+      '.css-175oi2r.r-1awozwy.r-1kihuf0.r-kemksi.r-3td2sv.r-1pi2tsx.r-zgris8.r-1v57z21.r-pm9dpa.r-z7pwl0.r-bnwqim.r-13qz1uu',
+      '.css-175oi2r.r-1jnzvcq.r-o8wjku.r-vmopo1'
+    ];
 
-    const div2 = document.querySelector('.css-175oi2r.r-18u37iz.r-1pi2tsx.r-bqdgw5.r-13qz1uu');
-    if (div2) { div2.className = 'w-full'; changed++; }
-
-    const div3 = document.querySelector('.css-175oi2r.r-1awozwy.r-1kihuf0.r-kemksi.r-3td2sv.r-1pi2tsx.r-zgris8.r-1v57z21.r-pm9dpa.r-z7pwl0.r-bnwqim.r-13qz1uu');
-    if (div3) { div3.className = 'w-full'; changed++; }
-
-    const div4 = document.querySelector('.css-175oi2r.r-1jnzvcq.r-o8wjku.r-vmopo1');
-    if (div4) { div4.className = 'w-full'; changed++; }
+    selectors.forEach((selector, index) => {
+      const el = document.querySelector(selector);
+      if (el && !originalClasses[`div${index}`]) {
+        originalClasses[`div${index}`] = el.className;
+        el.className = 'w-full';
+        changed++;
+      }
+    });
 
     if (changed < 5) {
       setTimeout(applyWidthFix, 500);
     }
+  }
+
+  function removeWidthFix() {
+    // Restore original classes
+    const main = document.querySelector('main[role="main"]');
+    if (main && originalClasses.main) {
+      main.className = originalClasses.main;
+    }
+
+    // For divs, we need to find them by current class and restore
+    const fullWidthDivs = document.querySelectorAll('.w-full');
+    fullWidthDivs.forEach(el => {
+      if (el.tagName !== 'MAIN') {
+        // Force page reload to restore original styles
+      }
+    });
+
+    // Easiest way to restore is to reload
+    window.location.reload();
+  }
+
+  function toggleFullWidth() {
+    isFullWidth = !isFullWidth;
+    localStorage.setItem('x-article-fullwidth', isFullWidth);
+    
+    // Update toggle button appearance
+    const toggle = document.querySelector('#x-fullwidth-toggle');
+    if (toggle) {
+      toggle.classList.toggle('active', isFullWidth);
+      toggle.title = isFullWidth ? 'Switch to default width' : 'Switch to full width';
+    }
+
+    // Reload to apply/remove changes cleanly
+    window.location.reload();
+  }
+
+  function createFullWidthToggle() {
+    // Find the header with Exit and Bookmark buttons
+    const injectToggle = () => {
+      const header = document.querySelector('header[role="banner"]');
+      if (!header || document.querySelector('#x-fullwidth-toggle')) return;
+
+      // Find the container with the buttons
+      const buttonContainer = header.querySelector('.css-175oi2r.r-18u37iz.r-1f55h46');
+      if (!buttonContainer) return;
+
+      const toggle = document.createElement('button');
+      toggle.id = 'x-fullwidth-toggle';
+      toggle.className = `x-header-btn ${isFullWidth ? 'active' : ''}`;
+      toggle.setAttribute('aria-label', isFullWidth ? 'Default width' : 'Full width');
+      toggle.setAttribute('role', 'button');
+      toggle.setAttribute('type', 'button');
+      toggle.title = isFullWidth ? 'Switch to default width' : 'Switch to full width';
+      toggle.innerHTML = `
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+          <path d="M4 4h6v2H6v4H4V4zm16 0v6h-2V6h-4V4h6zM4 20v-6h2v4h4v2H4zm16 0h-6v-2h4v-4h2v6z"/>
+        </svg>
+      `;
+      
+      toggle.addEventListener('click', toggleFullWidth);
+
+      // Insert after the last button in header
+      const lastButtonContainer = buttonContainer.querySelectorAll('.css-175oi2r.r-1gs4q39');
+      if (lastButtonContainer.length > 0) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'css-175oi2r r-1gs4q39';
+        wrapper.appendChild(toggle);
+        buttonContainer.appendChild(wrapper);
+      } else {
+        buttonContainer.appendChild(toggle);
+      }
+    };
+
+    // Try immediately
+    injectToggle();
+
+    // Also watch for header to appear
+    const observer = new MutationObserver(() => {
+      injectToggle();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
   }
 
   function createQuotePopup() {
@@ -400,7 +493,10 @@
 
   function init() {
     if (getArticleInfo()) {
-      applyWidthFix();
+      createFullWidthToggle();
+      if (isFullWidth) {
+        applyWidthFix();
+      }
       handleTextSelection();
       watchForQuoteModal();
       interceptGrokButton();
