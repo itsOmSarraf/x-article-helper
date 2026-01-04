@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>X Article Helper</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 320px;
+      min-height: 200px;
+      font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(145deg, #0f0f1a 0%, #1a1a2e 50%, #0d1421 100%);
+      color: #fff;
+      padding: 20px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .logo {
+      font-size: 28px;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #fff 0%, #1d9bf0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .status-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .status-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #888;
+      margin-bottom: 8px;
+    }
+
+    .status-value {
+      font-size: 14px;
+      color: #e0e0e0;
+    }
+
+    .status-value.active {
+      color: #4ade80;
+    }
+
+    .status-value.inactive {
+      color: #f87171;
+    }
+
+    .info-text {
+      font-size: 12px;
+      color: #666;
+      text-align: center;
+      margin-top: 16px;
+    }
+
+    .url-pattern {
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 11px;
+      background: rgba(29, 155, 240, 0.15);
+      color: #1d9bf0;
+      padding: 8px 12px;
+      border-radius: 8px;
+      margin-top: 12px;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span class="logo">📰</span>
+    <span class="title">X Article Helper</span>
+  </div>
+
+  <div class="status-card">
+    <div class="status-label">Status</div>
+    <div class="status-value" id="status">Checking...</div>
+  </div>
+
+  <div class="status-card">
+    <div class="status-label">Current Page</div>
+    <div class="status-value" id="page-info">—</div>
+  </div>
+
+  <div class="url-pattern">
+    Works on: x.com/{username}/article/{id}
+  </div>
+
+  <p class="info-text">Navigate to an X article to activate</p>
+
+  <script src="popup.js"></script>
+</body>
+</html>
+
