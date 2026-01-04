@@ -44,12 +44,20 @@
     const popup = document.createElement('div');
     popup.id = 'x-article-quote-popup';
     popup.innerHTML = `
-      <button id="x-quote-tweet-btn">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-        </svg>
-        <span>Quote Tweet</span>
-      </button>
+      <div class="x-popup-buttons">
+        <button id="x-quote-tweet-btn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+          <span>Quote</span>
+        </button>
+        <button id="x-ask-grok-btn">
+          <svg viewBox="0 0 33 32" width="16" height="16" fill="currentColor">
+            <path d="M12.745 20.54l10.97-8.19c.539-.4 1.307-.244 1.564.38 1.349 3.288.746 7.241-1.938 9.955-2.683 2.714-6.417 3.31-9.83 1.954l-3.728 1.745c5.347 3.697 11.84 2.782 15.898-1.324 3.219-3.255 4.216-7.692 3.284-11.693l.008.009c-1.351-5.878.332-8.227 3.782-13.031L33 0l-4.54 4.59v-.014L12.743 20.544m-2.263 1.987c-3.837-3.707-3.175-9.446.1-12.755 2.42-2.449 6.388-3.448 9.852-1.979l3.72-1.737c-.67-.49-1.53-1.017-2.515-1.387-4.455-1.854-9.789-.931-13.41 2.728-3.483 3.523-4.579 8.94-2.697 13.561 1.405 3.454-.899 5.898-3.22 8.364C1.49 30.2.666 31.074 0 32l10.478-9.466"/>
+          </svg>
+          <span>Ask Grok</span>
+        </button>
+      </div>
     `;
     document.body.appendChild(popup);
     return popup;
@@ -70,8 +78,8 @@
     if (!articleInfo) return;
 
     // Position the popup above the selection
-    const popupWidth = 140;
-    const popupHeight = 40;
+    const popupWidth = 220;
+    const popupHeight = 50;
     
     let posX = x - (popupWidth / 2);
     let posY = y - popupHeight - 10;
@@ -84,9 +92,9 @@
     quotePopup.style.top = `${posY}px`;
     quotePopup.classList.add('visible');
 
-    // Set up click handler
-    const btn = quotePopup.querySelector('#x-quote-tweet-btn');
-    btn.onclick = (e) => {
+    // Set up click handler for Quote Tweet
+    const quoteBtn = quotePopup.querySelector('#x-quote-tweet-btn');
+    quoteBtn.onclick = (e) => {
       e.preventDefault();
       e.stopPropagation();
       
@@ -106,6 +114,90 @@
       
       hidePopup();
     };
+
+    // Set up click handler for Ask Grok
+    const grokBtn = quotePopup.querySelector('#x-ask-grok-btn');
+    grokBtn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      sendToGrok(selectedText);
+      hidePopup();
+    };
+  }
+
+  // Send selected text to Grok sidebar
+  function sendToGrok(text) {
+    // First, try to open the Grok drawer if it's collapsed
+    const grokDrawer = document.querySelector('[data-testid="GrokDrawer"]');
+    
+    // If the Grok drawer is not visible/expanded, click the Grok button to open it
+    if (!grokDrawer || grokDrawer.offsetHeight < 100) {
+      // Find the Grok button by its unique SVG path
+      const grokButton = document.querySelector('button svg[viewBox="0 0 33 32"]')?.closest('button');
+      if (grokButton) {
+        grokButton.click();
+      }
+    }
+
+    // Wait for the drawer to open, then fill the textarea
+    setTimeout(() => {
+      fillGrokTextarea(text);
+    }, 400);
+  }
+
+  // Get the article URL converted to status URL (Grok can access /status/ but not /article/)
+  function getStatusUrl() {
+    const url = window.location.href;
+    // Convert /article/ to /status/
+    return url.replace('/article/', '/status/');
+  }
+
+  // Fill the Grok textarea with the selected text
+  function fillGrokTextarea(text, retryCount = 0) {
+    const maxRetries = 5;
+    
+    // Find the Grok drawer's textarea
+    const grokDrawer = document.querySelector('[data-testid="GrokDrawer"]');
+    if (!grokDrawer && retryCount < maxRetries) {
+      setTimeout(() => fillGrokTextarea(text, retryCount + 1), 300);
+      return;
+    }
+
+    const textarea = grokDrawer?.querySelector('textarea');
+    if (!textarea && retryCount < maxRetries) {
+      setTimeout(() => fillGrokTextarea(text, retryCount + 1), 200);
+      return;
+    }
+
+    if (!textarea) return;
+
+    // Get status URL for Grok to access
+    const statusUrl = getStatusUrl();
+
+    // Format the question with the status URL
+    const prompt = `From this article: ${statusUrl}\n\nExplain this:\n\n"${text}"`;
+
+    // Focus the textarea
+    textarea.focus();
+    
+    // Use native input value setter to bypass React's controlled input
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLTextAreaElement.prototype,
+      'value'
+    ).set;
+    
+    nativeInputValueSetter.call(textarea, prompt);
+    
+    // Dispatch input event to trigger React state update
+    const inputEvent = new Event('input', { bubbles: true, cancelable: true });
+    textarea.dispatchEvent(inputEvent);
+    
+    // Also dispatch change event
+    const changeEvent = new Event('change', { bubbles: true, cancelable: true });
+    textarea.dispatchEvent(changeEvent);
+    
+    // Position cursor at the end
+    textarea.setSelectionRange(prompt.length, prompt.length);
   }
 
   // Click the Quote option in the repost menu
@@ -226,11 +318,92 @@
     document.addEventListener('scroll', hidePopup, true);
   }
 
+  // Get article title from the page
+  function getArticleTitle() {
+    const titleEl = document.querySelector('[data-testid="twitter-article-title"]');
+    return titleEl ? titleEl.textContent.trim() : 'this article';
+  }
+
+  // Intercept clicks on the existing Grok button to pre-fill article context
+  function interceptGrokButton() {
+    // Find and intercept the Grok button
+    const attachGrokInterceptor = () => {
+      const grokButton = document.querySelector('button svg[viewBox="0 0 33 32"]')?.closest('button');
+      
+      if (grokButton && !grokButton.dataset.intercepted) {
+        grokButton.dataset.intercepted = 'true';
+        
+        grokButton.addEventListener('click', () => {
+          // Wait for Grok drawer to open, then pre-fill with article context
+          setTimeout(() => {
+            fillGrokWithArticlePrompt();
+          }, 400);
+        });
+      }
+    };
+
+    // Try immediately
+    attachGrokInterceptor();
+    
+    // Also watch for the button to appear (it may load dynamically)
+    const observer = new MutationObserver(() => {
+      attachGrokInterceptor();
+    });
+    
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
+  // Fill Grok with a prompt about the entire article
+  function fillGrokWithArticlePrompt(retryCount = 0) {
+    const maxRetries = 5;
+    
+    const grokDrawer = document.querySelector('[data-testid="GrokDrawer"]');
+    if (!grokDrawer && retryCount < maxRetries) {
+      setTimeout(() => fillGrokWithArticlePrompt(retryCount + 1), 300);
+      return;
+    }
+
+    const textarea = grokDrawer?.querySelector('textarea');
+    if (!textarea && retryCount < maxRetries) {
+      setTimeout(() => fillGrokWithArticlePrompt(retryCount + 1), 200);
+      return;
+    }
+
+    if (!textarea) return;
+    
+    // Only pre-fill if the textarea is empty (user hasn't typed anything)
+    if (textarea.value.trim() !== '') return;
+
+    const statusUrl = getStatusUrl();
+    const title = getArticleTitle();
+
+    // Prompt for discussing the entire article
+    const prompt = `I'm reading this article: "${title}"\n\n${statusUrl}\n\n`;
+
+    textarea.focus();
+    
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLTextAreaElement.prototype,
+      'value'
+    ).set;
+    
+    nativeInputValueSetter.call(textarea, prompt);
+    
+    const inputEvent = new Event('input', { bubbles: true, cancelable: true });
+    textarea.dispatchEvent(inputEvent);
+    
+    const changeEvent = new Event('change', { bubbles: true, cancelable: true });
+    textarea.dispatchEvent(changeEvent);
+    
+    textarea.setSelectionRange(prompt.length, prompt.length);
+  }
+
   function init() {
     if (getArticleInfo()) {
       applyWidthFix();
       handleTextSelection();
       watchForQuoteModal();
+      interceptGrokButton();
     }
   }
 

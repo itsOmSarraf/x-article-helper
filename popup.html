@@ -27,8 +27,9 @@
     }
 
     .x-logo {
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
     }
 
     .title {
@@ -86,13 +87,29 @@
     .x-btn:hover {
       border-color: #1d9bf0;
     }
+
+    .footer {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid #2f3336;
+      text-align: center;
+      font-size: 12px;
+      color: #71767b;
+    }
+
+    .footer a {
+      color: #1d9bf0;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
   <div class="header">
-    <svg class="x-logo" viewBox="0 0 24 24" fill="#fff">
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-    </svg>
+    <img src="icons/icon48.png" alt="X Article Helper" class="x-logo">
     <span class="title">Article Helper</span>
   </div>
 
@@ -112,6 +129,10 @@
       <span class="text">Follow me on X</span>
       <span class="action">→</span>
     </a>
+  </div>
+
+  <div class="footer">
+    Made with love by <a href="https://itsomsarraf.com" target="_blank">Om Sarraf</a>
   </div>
 
   <script src="popup.js"></script>
