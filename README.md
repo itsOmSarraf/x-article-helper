@@ -1,6 +1,16 @@
+![X Article Helper](Google%20Gemini%20Image.png)
+
 # X Article Helper
 
 A Chrome extension that enhances your X.com article reading and sharing experience.
+
+## Demo
+
+[![Watch the demo](https://img.shields.io/badge/▶_Watch_Demo-YouTube-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/watch?time_continue=2&v=ejgpxgKr2Nw)
+
+## Install
+
+[![Chrome Web Store](https://img.shields.io/badge/Chrome_Web_Store-Install-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/x-article-helper/bodljdbijlgpjdehfgenecpgbikjpcpl)
 
 ## Features
 
@@ -12,6 +22,10 @@ A Chrome extension that enhances your X.com article reading and sharing experien
 
 ## Installation
 
+### From Chrome Web Store (Recommended)
+👉 [Install X Article Helper](https://chromewebstore.google.com/detail/x-article-helper/bodljdbijlgpjdehfgenecpgbikjpcpl)
+
+### Manual Installation (For Developers)
 1. Clone this repo
    ```bash
    git clone https://github.com/itsOmSarraf/x-article-helper.git
